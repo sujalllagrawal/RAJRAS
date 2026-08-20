@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-ink font-body antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+  ::selection {
+    background: #8C2B1E;
+    color: #FBF5EA;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-xs md:text-[13px] font-semibold tracking-widest2 uppercase text-rajras-red;
+  }
+  .container-content {
+    @apply mx-auto max-w-content px-6 md:px-10;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-rajras-red text-cream px-7 py-3.5 rounded-tiffin font-semibold text-[15px] tracking-wide transition-all duration-300 hover:bg-rajras-red-dark hover:shadow-lift active:scale-[0.98];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 border border-ink/25 text-ink px-7 py-3.5 rounded-tiffin font-semibold text-[15px] tracking-wide transition-all duration-300 hover:border-rajras-red hover:text-rajras-red active:scale-[0.98];
+  }
+  .reveal {
+    @apply transition-all duration-700 ease-out;
+  }
+  .reveal:not(.in-view) {
+    @apply opacity-0 translate-y-4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
