@@ -11,11 +11,11 @@ export const rajrasConfig = {
   supportingText:
     "Fresh, delicious and comforting Indian meals, prepared with the feeling of home and delivered straight to your doorstep.",
 
-  // Digits only, with country code, no + or spaces. Example: 919876543210
-  whatsappNumber: "919876543210",
+  // Digits only, with country code, no + or spaces. Example: 916350054008
+  whatsappNumber: "916350054008",
 
   // Shown in footer/contact
-  phoneNumber: "+91 98765 43210",
+  phoneNumber: "+91 63500 54008",
 
   price: 120,
   deliveryCharge: 0,
@@ -27,7 +27,7 @@ export const rajrasConfig = {
 };
 
 // ─────────────────────────────────────────────────────────
-// EXACT WEEKLY MENU (Monday – Saturday + Sunday rest)
+// EXACT WEEKLY MENU (Monday – Sunday)
 // ─────────────────────────────────────────────────────────
 export const weeklyMenu = [
   {
@@ -93,11 +93,11 @@ export const weeklyMenu = [
   {
     day: "Sunday",
     dayCode: 0,
-    isRestDay: true,
-    title: "Weekly Rest Day",
+    title: "Sunday Special",
+    items: ["Bhindi", "Dal Makhani", "5 Roti", "Rice"],
     price: 120,
-    message: "See you tomorrow for another ghar-style meal.",
-    items: [],
+    image: "/images/hero_thali.png",
+    description: "Crispy spiced Bhindi stir-fry with slow-cooked Dal Makhani, 5 soft rotis & steamed rice.",
   },
 ];
 
@@ -207,7 +207,7 @@ export const testimonials = [
 export const faqs = [
   {
     q: "What is included in the ₹120 tiffin?",
-    a: "The menu varies by day. For example, Monday includes Chole, Moong Dal, Rice, 5 Roti, and Pickle. Check our weekly menu above for each day's exact menu.",
+    a: "The menu varies by day. For example, Monday includes Chole, Moong Dal, Rice, 5 Roti, and Pickle, while Sunday features Bhindi, Dal Makhani, 5 Roti, and Rice. Check our weekly menu above for each day's exact menu.",
   },
   {
     q: "Is delivery really free?",
