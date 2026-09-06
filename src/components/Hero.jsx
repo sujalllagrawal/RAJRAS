@@ -46,6 +46,16 @@ export default function Hero({ onOrder }) {
                 FREE DOORSTEP DELIVERY
               </span>
             </div>
+
+            <div className="bg-rajras-red/10 border border-rajras-red/30 px-5 py-3 rounded-tiffin shadow-sm flex items-center gap-2.5">
+              <span className="text-lg">🎉</span>
+              <div>
+                <span className="text-[12px] font-bold text-rajras-red uppercase tracking-wider block">
+                  1ST ORDER COUPON: <code className="bg-rajras-red text-cream px-1.5 py-0.5 rounded font-mono font-bold">FIRST10</code>
+                </span>
+                <span className="text-[11px] text-ink-soft">10% OFF for 1st-time customers (1 use per phone no.)</span>
+              </div>
+            </div>
           </div>
 
           {/* CTAs */}

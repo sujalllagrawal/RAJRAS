@@ -87,8 +87,9 @@ export default function AdminDashboard({ onLogout }) {
       if (error) {
         const local = localStorage.getItem("rajrass_coupons");
         const defaultCoupons = [
-          { id: 1, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
-          { id: 2, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true }
+          { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
+          { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
+          { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true }
         ];
         setCoupons(local ? JSON.parse(local) : defaultCoupons);
       } else {

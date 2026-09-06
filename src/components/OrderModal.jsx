@@ -48,29 +48,71 @@ export default function OrderModal({ open, onClose, selectedDay }) {
   }
   const total = Math.max(0, itemTotal + rajrasConfig.deliveryCharge - discount);
 
-  function handleApplyCoupon() {
+  async function handleApplyCoupon() {
     setCouponError("");
     const code = couponCode.trim().toUpperCase();
     if (!code) return;
+
+    const phoneDigits = form.phone.trim().replace(/\D/g, "");
+    if (!phoneDigits || phoneDigits.length < 10) {
+      setCouponError("Please enter your valid 10-digit phone number above first to verify coupon eligibility.");
+      return;
+    }
 
     // Load active coupons
     const savedCoupons = localStorage.getItem("rajrass_coupons");
     const couponsList = savedCoupons
       ? JSON.parse(savedCoupons)
       : [
-          { id: 1, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
-          { id: 2, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
+          { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
+          { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
+          { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
         ];
 
     const match = couponsList.find((c) => c.code === code && c.active);
     if (!match) {
-      setCouponError("Invalid or expired coupon code");
+      setCouponError("Invalid or expired coupon code.");
       setAppliedCoupon(null);
       return;
     }
 
+    // Check one-time coupon restriction for FIRST10 or first_time_only coupons
+    if (match.code === "FIRST10" || match.first_time_only) {
+      let isExistingCustomer = false;
+
+      // Check local storage orders
+      try {
+        const localOrders = JSON.parse(localStorage.getItem("rajrass_orders") || "[]");
+        isExistingCustomer = localOrders.some(
+          (o) => (o.phone_number || "").replace(/\D/g, "") === phoneDigits
+        );
+      } catch (e) {
+        // ignore
+      }
+
+      // Also check Supabase DB orders if available
+      try {
+        const { data, error } = await supabase
+          .from("orders")
+          .select("id, phone_number")
+          .eq("phone_number", form.phone.trim());
+
+        if (!error && data && data.length > 0) {
+          isExistingCustomer = true;
+        }
+      } catch (e) {
+        // fallback to local check
+      }
+
+      if (isExistingCustomer) {
+        setCouponError("Coupon 'FIRST10' is valid for 1st-time orders only. This phone number has already placed an order.");
+        setAppliedCoupon(null);
+        return;
+      }
+    }
+
     if (match.min_order_amount && itemTotal < match.min_order_amount) {
-      setCouponError(`Minimum order amount of ₹${match.min_order_amount} required`);
+      setCouponError(`Minimum order amount of ₹${match.min_order_amount} required.`);
       setAppliedCoupon(null);
       return;
     }
@@ -322,13 +364,18 @@ export default function OrderModal({ open, onClose, selectedDay }) {
 
             {/* Coupon Code Section */}
             <div>
-              <label className="block text-[13px] font-semibold text-ink-soft mb-1">
-                Have a Coupon Code?
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[13px] font-semibold text-ink-soft">
+                  Have a Coupon Code?
+                </label>
+                <span className="text-[11px] font-bold text-rajras-red bg-rajras-red/10 px-2 py-0.5 rounded">
+                  1st Order Code: FIRST10
+                </span>
+              </div>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Enter code (e.g. WELCOME10)"
+                  placeholder="e.g. FIRST10"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   className="flex-1 rounded-tiffin border border-cream-line bg-white px-3 py-2 text-xs uppercase font-mono font-semibold focus:outline-none focus:border-rajras-red"
