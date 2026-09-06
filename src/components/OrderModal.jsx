@@ -14,7 +14,6 @@ export default function OrderModal({ open, onClose, selectedDay }) {
 
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = "hidden";
       setForm(emptyForm);
       setErrors({});
       setSubmittedSuccess(false);
@@ -25,12 +24,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       } else {
         setSelectedFridayOption("");
       }
-    } else {
-      document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [open, selectedDay]);
 
   const [couponCode, setCouponCode] = useState("");
@@ -233,8 +227,8 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                 <span className="inline-block px-2.5 py-0.5 rounded-full bg-rajras-red/10 text-rajras-red font-semibold text-[11px] uppercase tracking-wider mb-1">
                   {selectedDay.day} Meal
                 </span>
-                <h4 className="font-display text-lg font-semibold text-ink">
-                  {selectedDay.isSpecial ? "Friday Special Menu" : selectedDay.items.slice(0, 2).join(" + ")}
+                <h4 className="font-display text-xl font-semibold text-ink">
+                  {selectedDay.title}
                 </h4>
               </div>
               <span className="font-display text-2xl font-semibold text-rajras-red">₹{rajrasConfig.price}</span>
@@ -247,57 +241,58 @@ export default function OrderModal({ open, onClose, selectedDay }) {
             )}
           </div>
 
-          {/* Friday Special Options Selector */}
-          {selectedDay.isSpecial && selectedDay.options && (
-            <div>
-              <label className="block font-display text-[16px] font-semibold text-ink mb-2">
-                Choose your Friday meal option <span className="text-rajras-red">*</span>
-              </label>
-              <div className="space-y-2.5">
-                {selectedDay.options.map((opt) => {
-                  const isSelected = selectedFridayOption === opt.label;
-                  return (
-                    <label
-                      key={opt.id}
-                      onClick={() => setSelectedFridayOption(opt.label)}
-                      className={`flex items-center justify-between p-3.5 rounded-tiffin border cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-rajras-red bg-rajras-red/5 shadow-sm"
-                          : "border-cream-line bg-white hover:border-ink/30"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            isSelected ? "border-rajras-red bg-rajras-red" : "border-ink/40 bg-white"
-                          }`}
-                        >
-                          {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cream" />}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-[14.5px] text-ink">{opt.label}</p>
-                          <p className="text-[12px] text-ink-faint">{opt.detail}</p>
-                        </div>
-                      </div>
-                      <span className="font-display font-semibold text-[14px] text-rajras-red">₹120</span>
-                    </label>
-                  );
-                })}
-              </div>
-              {errors.fridayOption && (
-                <p className="mt-1.5 text-[12.5px] text-rajras-red font-medium">{errors.fridayOption}</p>
-              )}
-            </div>
-          )}
-
           {/* Form fields */}
           <form id="orderForm" onSubmit={handleSubmit} className="space-y-4">
+            {/* Friday Special Options Selector */}
+            {selectedDay.isSpecial && selectedDay.options && (
+              <div className="mb-4">
+                <label className="block font-display text-[16px] font-semibold text-ink mb-2">
+                  Choose your Friday meal option <span className="text-rajras-red">*</span>
+                </label>
+                <div className="space-y-2.5">
+                  {selectedDay.options.map((opt) => {
+                    const isSelected = selectedFridayOption === opt.label;
+                    return (
+                      <label
+                        key={opt.id}
+                        onClick={() => setSelectedFridayOption(opt.label)}
+                        className={`flex items-center justify-between p-3.5 rounded-tiffin border cursor-pointer transition-all ${
+                          isSelected
+                            ? "border-rajras-red bg-rajras-red/5 shadow-sm"
+                            : "border-cream-line bg-white hover:border-ink/30"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                              isSelected ? "border-rajras-red bg-rajras-red" : "border-ink/40 bg-white"
+                            }`}
+                          >
+                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cream" />}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[14.5px] text-ink">{opt.label}</p>
+                            <p className="text-[12px] text-ink-faint">{opt.detail}</p>
+                          </div>
+                        </div>
+                        <span className="font-display font-semibold text-[14px] text-rajras-red">₹120</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {errors.fridayOption && (
+                  <p className="mt-1.5 text-[12.5px] text-rajras-red font-medium">{errors.fridayOption}</p>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="block text-[13px] font-semibold text-ink-soft mb-1">
                 Your Name <span className="text-rajras-red">*</span>
               </label>
               <input
                 type="text"
+                name="customer_name"
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
                 placeholder="e.g. Rahul Sharma"
@@ -312,6 +307,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
               </label>
               <input
                 type="tel"
+                name="customer_phone"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
                 placeholder="10-digit mobile number"
@@ -325,6 +321,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                 Delivery Address <span className="text-rajras-red">*</span>
               </label>
               <textarea
+                name="delivery_address"
                 value={form.address}
                 onChange={(e) => update("address", e.target.value)}
                 placeholder="Flat / PG / House no., street, landmark, area"
