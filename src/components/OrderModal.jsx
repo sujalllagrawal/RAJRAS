@@ -152,6 +152,8 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     setForm((f) => ({ ...f, quantity: Math.max(1, Math.min(15, f.quantity + delta)) }));
   }
 
+  if (!open || !selectedDay) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
