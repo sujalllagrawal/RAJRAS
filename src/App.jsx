@@ -23,7 +23,7 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState(weeklyMenu[0]);
   const [isAdminView, setIsAdminView] = useState(false);
 
-  const rootRef = useReveal([orderOpen, selectedDay, isAdminView]);
+  const rootRef = useReveal();
 
   useEffect(() => {
     const checkRoute = () => {

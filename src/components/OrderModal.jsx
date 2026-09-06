@@ -299,7 +299,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
                 placeholder="e.g. Rahul Sharma"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all cursor-text"
+                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red"
               />
               {errors.name && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.name}</p>}
             </div>
@@ -316,7 +316,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
                 placeholder="10-digit mobile number"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all cursor-text"
+                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red"
               />
               {errors.phone && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.phone}</p>}
             </div>
@@ -333,7 +333,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                 onChange={(e) => update("address", e.target.value)}
                 placeholder="Flat / PG / House no., street, landmark, area"
                 rows={2}
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-2.5 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all resize-none cursor-text"
+                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-2.5 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red resize-none"
               />
               {errors.address && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.address}</p>}
             </div>
