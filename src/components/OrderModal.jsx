@@ -191,18 +191,18 @@ export default function OrderModal({ open, onClose, selectedDay }) {
   if (!open || !selectedDay) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-ink/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-ink/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal / Bottom Sheet */}
-      <div className="relative bg-cream w-full sm:max-w-lg sm:rounded-tiffin rounded-t-2xl shadow-lift max-h-[92vh] flex flex-col overflow-hidden animate-riseIn">
+      <div className="relative z-10 bg-cream w-full sm:max-w-lg sm:rounded-tiffin rounded-t-2xl shadow-lift max-h-[90vh] flex flex-col overflow-hidden animate-riseIn">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-cream border-b border-cream-line px-6 py-4 flex items-center justify-between">
+        <div className="shrink-0 bg-cream border-b border-cream-line px-6 py-4 flex items-center justify-between">
           <div>
             <h3 className="font-display text-[22px] font-semibold text-ink">
               Order Your {selectedDay.day} Tiffin
@@ -210,6 +210,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
             <p className="text-[12px] text-ink-soft">Fast WhatsApp Ordering • Synced with Supabase</p>
           </div>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close"
             className="w-9 h-9 rounded-full flex items-center justify-center text-ink-soft hover:bg-cream-soft hover:text-ink transition-colors"
@@ -219,7 +220,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
         </div>
 
         {/* Content area */}
-        <div className="overflow-y-auto px-6 py-5 space-y-6">
+        <div className="overflow-y-auto px-6 py-5 space-y-6 flex-1">
           {/* Selected Meal Card */}
           <div className="bg-white border border-cream-line rounded-tiffin p-4 shadow-sm">
             <div className="flex items-start justify-between">
@@ -287,46 +288,52 @@ export default function OrderModal({ open, onClose, selectedDay }) {
             )}
 
             <div>
-              <label className="block text-[13px] font-semibold text-ink-soft mb-1">
+              <label htmlFor="customer_name" className="block text-[13px] font-semibold text-ink-soft mb-1">
                 Your Name <span className="text-rajras-red">*</span>
               </label>
               <input
+                id="customer_name"
                 type="text"
-                name="customer_name"
+                name="name"
+                autoComplete="name"
                 value={form.name}
                 onChange={(e) => update("name", e.target.value)}
                 placeholder="e.g. Rahul Sharma"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all"
+                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all cursor-text"
               />
               {errors.name && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.name}</p>}
             </div>
 
             <div>
-              <label className="block text-[13px] font-semibold text-ink-soft mb-1">
+              <label htmlFor="customer_phone" className="block text-[13px] font-semibold text-ink-soft mb-1">
                 Phone Number <span className="text-rajras-red">*</span>
               </label>
               <input
+                id="customer_phone"
                 type="tel"
-                name="customer_phone"
+                name="phone"
+                autoComplete="tel"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
                 placeholder="10-digit mobile number"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all"
+                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all cursor-text"
               />
               {errors.phone && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.phone}</p>}
             </div>
 
             <div>
-              <label className="block text-[13px] font-semibold text-ink-soft mb-1">
+              <label htmlFor="delivery_address" className="block text-[13px] font-semibold text-ink-soft mb-1">
                 Delivery Address <span className="text-rajras-red">*</span>
               </label>
               <textarea
-                name="delivery_address"
+                id="delivery_address"
+                name="address"
+                autoComplete="street-address"
                 value={form.address}
                 onChange={(e) => update("address", e.target.value)}
                 placeholder="Flat / PG / House no., street, landmark, area"
                 rows={2}
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-2.5 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all resize-none"
+                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-2.5 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all resize-none cursor-text"
               />
               {errors.address && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.address}</p>}
             </div>
