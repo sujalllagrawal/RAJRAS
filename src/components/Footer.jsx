@@ -21,8 +21,9 @@ export default function Footer() {
           <ul className="space-y-2.5 text-[14px]">
             <li><a href="#home" className="hover:text-cream transition-colors">Home</a></li>
             <li><a href="#menu" className="hover:text-cream transition-colors">Menu</a></li>
-            <li><a href="#why" className="hover:text-cream transition-colors">Why Rajras</a></li>
+            <li><a href="#why" className="hover:text-cream transition-colors">Why RAJRASS</a></li>
             <li><a href="#faq" className="hover:text-cream transition-colors">FAQ</a></li>
+            <li><a href="#admin" className="hover:text-cream transition-colors font-semibold text-saffron">Admin Panel</a></li>
           </ul>
         </div>
 
