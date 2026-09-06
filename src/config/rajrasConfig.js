@@ -1,10 +1,10 @@
 // ─────────────────────────────────────────────────────────
-// RAJRAS — BUSINESS CONFIGURATION & EXACT MENU SPECIFICATION
+// RAJRASS — BUSINESS CONFIGURATION & EXACT MENU SPECIFICATION
 // Single source of truth for business details and menus.
 // ─────────────────────────────────────────────────────────
 
 export const rajrasConfig = {
-  businessName: "RAJRAS",
+  businessName: "RAJRASS",
   tagline: "Ghar Jaisa Khana. Har Roz.",
   subTagline: "A proper ghar-style meal, delivered to your doorstep.",
   headline: "Ghar Jaisa Khana. Sirf ₹120.",
@@ -138,7 +138,7 @@ export const mealComponents = [
   },
 ];
 
-// Why Rajras
+// Why RAJRASS
 export const whyRajras = [
   {
     title: "Ghar Jaisa Taste",
@@ -177,7 +177,7 @@ export const howItWorks = [
   {
     step: "03",
     title: "Enjoy",
-    description: "Your hot Rajras meal reaches your doorstep with free delivery.",
+    description: "Your hot RAJRASS meal reaches your doorstep with free delivery.",
   },
 ];
 
@@ -238,3 +238,4 @@ export const faqs = [
     a: `Our delivery windows are ${rajrasConfig.deliveryTimings}.`,
   },
 ];
+

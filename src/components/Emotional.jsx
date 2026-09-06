@@ -24,7 +24,7 @@ export default function Emotional({ onOrder }) {
             <div className="space-y-4 text-[17px] sm:text-[18px] leading-relaxed text-cream/90 max-w-xl">
               <p>Kabhi dal-roti ki craving hoti hai.</p>
               <p>Kabhi bas ek simple sa ghar ka khana chahiye.</p>
-              <p>Rajras unhi dinon ke liye hai.</p>
+              <p>RAJRASS unhi dinon ke liye hai.</p>
               <p className="font-display font-semibold text-2xl text-cream pt-2">
                 Ghar ka swaad. Roz ka sukoon.
               </p>

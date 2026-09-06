@@ -1,4 +1,4 @@
-// A hand-art-directed illustration of a Rajras tiffin thali, built entirely
+// A hand-art-directed illustration of a RAJRASS tiffin thali, built entirely
 // in SVG so the project ships with zero external/stock imagery. Swap the
 // <TiffinPlate/> markup for a real photograph whenever one is available —
 // see the comment near the bottom for exactly where to drop an <img>.
@@ -9,7 +9,7 @@ export function TiffinPlate({ className = "" }) {
       viewBox="0 0 520 520"
       className={className}
       role="img"
-      aria-label="Illustration of a Rajras home-style thali with dal, sabzi, roti, rice, salad and achaar"
+      aria-label="Illustration of a RAJRASS home-style thali with dal, sabzi, roti, rice, salad and achaar"
     >
       <defs>
         <radialGradient id="plateShadow" cx="50%" cy="55%" r="60%">

@@ -7,7 +7,7 @@ export default function DeliveryArea() {
         <div className="reveal">
           <p className="eyebrow mb-4">Delivery Area</p>
           <h2 className="text-[30px] md:text-[38px] font-semibold text-ink leading-[1.16]">
-            Rajras delivers happiness to your doorstep.
+            RAJRASS delivers happiness to your doorstep.
           </h2>
           <div className="mt-6 flex flex-wrap gap-3">
             <span className="inline-flex items-center gap-2 bg-cream border border-cream-line rounded-tiffin px-4 py-2 text-[14px] font-semibold text-ink">

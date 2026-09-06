@@ -8,7 +8,7 @@ export default function TodaysMenu({ onOrder }) {
         <div className="text-center max-w-xl mx-auto reveal">
           <p className="eyebrow mb-4">Today's Menu</p>
           <h2 className="text-[34px] md:text-[42px] font-semibold text-ink leading-[1.12]">
-            Today's Rajras
+            Today's RAJRASS
           </h2>
         </div>
 

@@ -26,9 +26,22 @@ export default function App() {
   const rootRef = useReveal([orderOpen, selectedDay, isAdminView]);
 
   useEffect(() => {
-    if (window.location.hash === "#admin" || window.location.pathname === "/admin") {
-      setIsAdminView(true);
-    }
+    const checkRoute = () => {
+      const isAdmin =
+        window.location.hash === "#admin" ||
+        window.location.pathname === "/admin" ||
+        window.location.pathname.endsWith("/admin");
+      setIsAdminView(isAdmin);
+    };
+
+    checkRoute();
+    window.addEventListener("popstate", checkRoute);
+    window.addEventListener("hashchange", checkRoute);
+
+    return () => {
+      window.removeEventListener("popstate", checkRoute);
+      window.removeEventListener("hashchange", checkRoute);
+    };
   }, []);
 
   const openOrder = (day = null) => {

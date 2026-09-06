@@ -1,7 +1,9 @@
 import { rajrasConfig } from "../config/rajrasConfig";
 
-export function buildOrderMessage({ dayData, selectedFridayOption, name, phone, address, quantity, instructions }) {
-  const total = rajrasConfig.price * quantity + rajrasConfig.deliveryCharge;
+export function buildOrderMessage({ dayData, selectedFridayOption, name, phone, address, quantity, instructions, couponCode, discount, total: calculatedTotal }) {
+  const priceEach = dayData.price || rajrasConfig.price;
+  const itemTotal = priceEach * quantity;
+  const total = calculatedTotal !== undefined ? calculatedTotal : (itemTotal + rajrasConfig.deliveryCharge);
 
   let mealText = "";
   if (dayData.isSpecial && selectedFridayOption) {
@@ -9,7 +11,7 @@ export function buildOrderMessage({ dayData, selectedFridayOption, name, phone, 
   } else if (dayData.items && dayData.items.length > 0) {
     mealText = `${dayData.day} (${dayData.items.join(" + ")})`;
   } else {
-    mealText = `${dayData.day} Rajras Tiffin`;
+    mealText = `${dayData.day} RAJRASS Tiffin`;
   }
 
   const lines = [
@@ -21,10 +23,15 @@ export function buildOrderMessage({ dayData, selectedFridayOption, name, phone, 
     `Day: ${dayData.day}`,
     `Meal: ${mealText}`,
     `Quantity: ${quantity}`,
-    `Price: ₹${rajrasConfig.price} each`,
+    `Price: ₹${priceEach} each`,
     `Delivery: FREE`,
-    `Total: ₹${total}`,
   ];
+
+  if (couponCode && discount > 0) {
+    lines.push(`Coupon Applied: ${couponCode} (-₹${discount})`);
+  }
+
+  lines.push(`Total: ₹${total}`);
 
   if (instructions && instructions.trim()) {
     lines.push(`Special Instructions: ${instructions.trim()}`);

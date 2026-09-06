@@ -2,18 +2,22 @@ import { useState, useEffect } from "react";
 import { weeklyMenu, rajrasConfig } from "../config/rajrasConfig";
 
 export default function WeeklyMenu({ onOrder }) {
+  const [menuList, setMenuList] = useState(() => {
+    const saved = localStorage.getItem("rajrass_weekly_menu");
+    return saved ? JSON.parse(saved) : weeklyMenu;
+  });
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
 
   useEffect(() => {
     // Detect day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
     const todayCode = new Date().getDay();
-    const foundIndex = weeklyMenu.findIndex((m) => m.dayCode === todayCode);
+    const foundIndex = menuList.findIndex((m) => m.dayCode === todayCode);
     if (foundIndex !== -1) {
       setCurrentDayIndex(foundIndex);
     }
-  }, []);
+  }, [menuList]);
 
-  const activeDay = weeklyMenu[currentDayIndex];
+  const activeDay = menuList[currentDayIndex];
 
   return (
     <section id="menu" className="py-20 md:py-28 bg-cream">
@@ -22,7 +26,7 @@ export default function WeeklyMenu({ onOrder }) {
         <div className="text-center max-w-2xl mx-auto reveal">
           <p className="eyebrow mb-3">Weekly Menu</p>
           <h2 className="text-[34px] sm:text-[42px] font-semibold text-ink leading-[1.08]">
-            This Week at Rajras
+            This Week at RAJRASS
           </h2>
           <p className="mt-4 text-[16px] text-ink-soft leading-relaxed">
             Six days. Six comforting menus. One simple promise — ghar jaisa khana.
@@ -32,7 +36,7 @@ export default function WeeklyMenu({ onOrder }) {
         {/* Day Selector Tabs (Swipeable / Scrollable on mobile) */}
         <div className="mt-10 reveal">
           <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto pb-3 pt-1 scrollbar-none snap-x">
-            {weeklyMenu.map((m, index) => {
+            {menuList.map((m, index) => {
               const isToday = m.dayCode === new Date().getDay();
               const isSelected = index === currentDayIndex;
 
@@ -176,7 +180,7 @@ export default function WeeklyMenu({ onOrder }) {
             Full Week Overview
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {weeklyMenu.map((m) => {
+            {menuList.map((m) => {
               const isToday = m.dayCode === new Date().getDay();
               return (
                 <div

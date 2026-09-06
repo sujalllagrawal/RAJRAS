@@ -4,7 +4,7 @@ import { rajrasConfig } from "../config/rajrasConfig";
 const links = [
   { label: "Home", href: "#home" },
   { label: "Menu", href: "#menu" },
-  { label: "Why Rajras", href: "#why" },
+  { label: "Why RAJRASS", href: "#why" },
   { label: "How It Works", href: "#how" },
   { label: "FAQ", href: "#faq" },
 ];

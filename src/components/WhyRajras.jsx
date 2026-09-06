@@ -5,9 +5,9 @@ export default function WhyRajras() {
     <section id="why" className="py-20 md:py-28 bg-cream-soft/60">
       <div className="container-content">
         <div className="max-w-xl reveal">
-          <p className="eyebrow mb-4">Why Rajras</p>
+          <p className="eyebrow mb-4">Why RAJRASS</p>
           <h2 className="text-[34px] md:text-[42px] font-semibold text-ink leading-[1.12]">
-            Why Rajras?
+            Why RAJRASS?
           </h2>
         </div>
 

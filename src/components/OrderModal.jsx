@@ -33,12 +33,54 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     };
   }, [open, selectedDay]);
 
-  if (!open || !selectedDay) return null;
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
 
-  const total = rajrasConfig.price * form.quantity + rajrasConfig.deliveryCharge;
+  const itemTotal = (selectedDay.price || rajrasConfig.price) * form.quantity;
+  let discount = 0;
+  if (appliedCoupon) {
+    if (appliedCoupon.discount_type === "FLAT") {
+      discount = appliedCoupon.discount_value;
+    } else if (appliedCoupon.discount_type === "PERCENT") {
+      discount = (itemTotal * appliedCoupon.discount_value) / 100;
+    }
+  }
+  const total = Math.max(0, itemTotal + rajrasConfig.deliveryCharge - discount);
 
-  function update(field, value) {
-    setForm((f) => ({ ...f, [field]: value }));
+  function handleApplyCoupon() {
+    setCouponError("");
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+
+    // Load active coupons
+    const savedCoupons = localStorage.getItem("rajrass_coupons");
+    const couponsList = savedCoupons
+      ? JSON.parse(savedCoupons)
+      : [
+          { id: 1, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
+          { id: 2, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
+        ];
+
+    const match = couponsList.find((c) => c.code === code && c.active);
+    if (!match) {
+      setCouponError("Invalid or expired coupon code");
+      setAppliedCoupon(null);
+      return;
+    }
+
+    if (match.min_order_amount && itemTotal < match.min_order_amount) {
+      setCouponError(`Minimum order amount of ₹${match.min_order_amount} required`);
+      setAppliedCoupon(null);
+      return;
+    }
+
+    setAppliedCoupon(match);
+    setCouponError("");
+  }
+
+  function changeQty(delta) {
+    setForm((f) => ({ ...f, quantity: Math.max(1, f.quantity + delta) }));
   }
 
   function validate() {
@@ -68,7 +110,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     } else if (selectedDay.items && selectedDay.items.length > 0) {
       mealText = `${selectedDay.day} (${selectedDay.items.join(" + ")})`;
     } else {
-      mealText = `${selectedDay.day} Rajras Tiffin`;
+      mealText = `${selectedDay.day} RAJRASS Tiffin`;
     }
 
     // Save order data asynchronously to Supabase
@@ -94,6 +136,9 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       address: form.address,
       quantity: form.quantity,
       instructions: form.instructions,
+      couponCode: appliedCoupon ? appliedCoupon.code : null,
+      discount,
+      total,
     });
 
     const url = buildWhatsAppUrl(message);
@@ -273,17 +318,33 @@ export default function OrderModal({ open, onClose, selectedDay }) {
               </div>
             </div>
 
+            {/* Coupon Code Section */}
             <div>
               <label className="block text-[13px] font-semibold text-ink-soft mb-1">
-                Special Instructions <span className="text-ink-faint font-normal">(optional)</span>
+                Have a Coupon Code?
               </label>
-              <input
-                type="text"
-                value={form.instructions}
-                onChange={(e) => update("instructions", e.target.value)}
-                placeholder="e.g. Less spicy / No onion / Call on arrival"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-2.5 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red transition-all"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter code (e.g. WELCOME10)"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  className="flex-1 rounded-tiffin border border-cream-line bg-white px-3 py-2 text-xs uppercase font-mono font-semibold focus:outline-none focus:border-rajras-red"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  className="bg-cream border border-cream-line text-ink hover:border-rajras-red hover:text-rajras-red text-xs font-semibold px-4 rounded-tiffin transition-all"
+                >
+                  Apply
+                </button>
+              </div>
+              {couponError && <p className="mt-1 text-[12px] text-rajras-red">{couponError}</p>}
+              {appliedCoupon && (
+                <p className="mt-1 text-[12px] text-green-700 font-semibold">
+                  ✓ Coupon "{appliedCoupon.code}" applied!
+                </p>
+              )}
             </div>
           </form>
 
@@ -296,8 +357,16 @@ export default function OrderModal({ open, onClose, selectedDay }) {
               <span>
                 {selectedDay.day} Tiffin × {form.quantity}
               </span>
-              <span className="font-semibold text-ink">₹{rajrasConfig.price * form.quantity}</span>
+              <span className="font-semibold text-ink">₹{itemTotal}</span>
             </div>
+
+            {discount > 0 && (
+              <div className="flex justify-between text-[13.5px] text-green-700 font-semibold">
+                <span>Coupon Discount</span>
+                <span>- ₹{discount}</span>
+              </div>
+            )}
+
             <div className="flex justify-between text-[13.5px] text-ink-soft">
               <span>Doorstep Delivery</span>
               <span className="text-saffron font-semibold">FREE</span>
