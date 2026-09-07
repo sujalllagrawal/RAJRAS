@@ -24,14 +24,15 @@ export const rajrasConfig = {
   deliveryTimings: "Lunch: 12:00 PM – 2:30 PM | Dinner: 7:30 PM – 9:30 PM",
 
   specialThepla: {
-    title: "Fresh Methi Thepla & Achar",
+    title: "3 Fresh Methi Thepla & Homemade Achar",
     price: 60,
     timings: "12:00 PM to 12:00 AM (Daily)",
+    items: ["3 Methi Thepla", "Homemade Achar"],
     addon: {
       name: "Bharva Mirch",
       price: 10,
     },
-    description: "Soft & flavorful Gujarati Methi Thepla served with homemade pickle.",
+    description: "3 soft, hot & flavorful Gujarati Methi Thepla served with homemade pickle.",
   },
 
   instagramUrl: "https://instagram.com",

@@ -68,7 +68,7 @@ export default function App() {
       day: "Daily Special",
       title: rajrasConfig.specialThepla.title,
       price: rajrasConfig.specialThepla.price,
-      items: ["Fresh Methi Thepla", "Homemade Achar"],
+      items: rajrasConfig.specialThepla.items,
       timings: rajrasConfig.specialThepla.timings,
     });
   };

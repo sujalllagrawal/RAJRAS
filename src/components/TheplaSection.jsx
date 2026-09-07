@@ -26,7 +26,7 @@ export default function TheplaSection({ onOrderThepla }) {
             </div>
 
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-ink">
-              Fresh Methi Thepla + Homemade Achar
+              3 Fresh Methi Thepla + Homemade Achar
             </h2>
 
             <p className="text-sm sm:text-base text-ink-soft leading-relaxed max-w-xl">
