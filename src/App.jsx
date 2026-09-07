@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import ValueStrip from "./components/ValueStrip";
 import WeeklyMenu from "./components/WeeklyMenu";
+import TheplaSection from "./components/TheplaSection";
 import MealComponents from "./components/MealComponents";
 import Emotional from "./components/Emotional";
 import WhyRajras from "./components/WhyRajras";
@@ -16,7 +17,7 @@ import OrderModal from "./components/OrderModal";
 import StickyMobileCTA from "./components/StickyMobileCTA";
 import AdminOrders from "./components/AdminOrders";
 import { useReveal } from "./hooks/useReveal";
-import { weeklyMenu } from "./config/rajrasConfig";
+import { weeklyMenu, rajrasConfig } from "./config/rajrasConfig";
 
 export default function App() {
   const [orderOpen, setOrderOpen] = useState(false);
@@ -45,7 +46,9 @@ export default function App() {
   }, []);
 
   const openOrder = (day = null) => {
-    if (day && !day.isRestDay) {
+    if (day && typeof day === "object" && day.isThepla) {
+      setSelectedDay(day);
+    } else if (day && !day.isRestDay) {
       setSelectedDay(day);
     } else {
       const todayCode = new Date().getDay();
@@ -57,6 +60,17 @@ export default function App() {
       }
     }
     setOrderOpen(true);
+  };
+
+  const openTheplaOrder = () => {
+    openOrder({
+      isThepla: true,
+      day: "Daily Special",
+      title: rajrasConfig.specialThepla.title,
+      price: rajrasConfig.specialThepla.price,
+      items: ["Fresh Methi Thepla", "Homemade Achar"],
+      timings: rajrasConfig.specialThepla.timings,
+    });
   };
 
   const closeOrder = () => setOrderOpen(false);
@@ -73,6 +87,7 @@ export default function App() {
         <Hero onOrder={() => openOrder()} />
         <ValueStrip />
         <WeeklyMenu onOrder={openOrder} />
+        <TheplaSection onOrderThepla={openTheplaOrder} />
         <MealComponents />
         <Emotional onOrder={() => openOrder()} />
         <WhyRajras />
@@ -90,3 +105,4 @@ export default function App() {
     </div>
   );
 }
+

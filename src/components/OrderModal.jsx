@@ -11,6 +11,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
   const [quantity, setQuantity] = useState(1);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [selectedFridayOption, setSelectedFridayOption] = useState("");
+  const [hasBharvaMirch, setHasBharvaMirch] = useState(false);
   
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -34,6 +35,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       setFormErrors({});
       setIsSubmitting(false);
       setIsSuccess(false);
+      setHasBharvaMirch(false);
 
       if (selectedDay?.isSpecial && selectedDay?.options?.length > 0) {
         setSelectedFridayOption(selectedDay.options[0].label);
@@ -45,7 +47,9 @@ export default function OrderModal({ open, onClose, selectedDay }) {
 
   if (!open || !selectedDay) return null;
 
-  const unitPrice = selectedDay.price || rajrasConfig.price;
+  const baseUnitPrice = selectedDay.price || rajrasConfig.price;
+  const addonUnitPrice = selectedDay.isThepla && hasBharvaMirch ? (rajrasConfig.specialThepla.addon.price || 10) : 0;
+  const unitPrice = baseUnitPrice + addonUnitPrice;
   const subtotal = unitPrice * quantity;
   
   let discount = 0;
@@ -132,17 +136,21 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     e.preventDefault();
     if (!validate()) return;
 
-    // Cutoff validation for same day meal after 6:30 PM
-    const cutoffInfo = getCutoffStatus(selectedDay.dayCode);
-    if (cutoffInfo.isClosed) {
-      alert(`⏰ ORDER CLOSED FOR TODAY:\n\nSame-day orders for ${selectedDay.day} close at 6:30 PM.\n\nPlease pick another upcoming day from our weekly menu to order!`);
-      return;
+    // Cutoff validation for same day meal after 6:30 PM (skip for special everyday Thepla)
+    if (!selectedDay.isThepla && selectedDay.dayCode !== undefined) {
+      const cutoffInfo = getCutoffStatus(selectedDay.dayCode);
+      if (cutoffInfo.isClosed) {
+        alert(`⏰ ORDER CLOSED FOR TODAY:\n\nSame-day orders for ${selectedDay.day} close at 6:30 PM.\n\nPlease pick another upcoming day from our weekly menu to order!`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
 
     let mealText = "";
-    if (selectedDay.isSpecial && selectedFridayOption) {
+    if (selectedDay.isThepla) {
+      mealText = hasBharvaMirch ? "Methi Thepla & Achar (+ Bharva Mirch)" : "Methi Thepla & Achar";
+    } else if (selectedDay.isSpecial && selectedFridayOption) {
       mealText = `Friday Special — ${selectedFridayOption}`;
     } else if (selectedDay.items && selectedDay.items.length > 0) {
       mealText = `${selectedDay.day} (${selectedDay.items.join(" + ")})`;
@@ -150,12 +158,14 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       mealText = `${selectedDay.day} RAJRASS Tiffin`;
     }
 
+    const selectedAddon = selectedDay.isThepla && hasBharvaMirch ? rajrasConfig.specialThepla.addon : null;
+
     // Save order data
     await saveOrderToSupabase({
       name,
       phone,
       address,
-      day: selectedDay.day,
+      day: selectedDay.day || "Daily Special",
       meal: mealText,
       fridayOption: selectedFridayOption || null,
       quantity,
@@ -169,6 +179,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     const message = buildOrderMessage({
       dayData: selectedDay,
       selectedFridayOption,
+      selectedAddon,
       name,
       phone,
       address,
@@ -198,10 +209,10 @@ export default function OrderModal({ open, onClose, selectedDay }) {
         <div className="bg-cream border-b border-cream-line px-6 py-4 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold tracking-widest text-rajras-red uppercase bg-rajras-red/10 px-2 py-0.5 rounded">
-              RAJRASS TIFFIN ORDER
+              {selectedDay.isThepla ? "DAILY SPECIAL ORDER" : "RAJRASS TIFFIN ORDER"}
             </span>
             <h3 className="font-display text-xl font-bold text-ink mt-0.5">
-              {selectedDay.day} Meal Order
+              {selectedDay.isThepla ? "Methi Thepla + Achar" : `${selectedDay.day} Meal Order`}
             </h3>
           </div>
           <button
@@ -217,7 +228,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
         <div className="overflow-y-auto p-5 sm:p-6 space-y-5">
           
           {/* Cutoff Warning Banner if order closed for same day */}
-          {getCutoffStatus(selectedDay.dayCode).isClosed && (
+          {!selectedDay.isThepla && selectedDay.dayCode !== undefined && getCutoffStatus(selectedDay.dayCode).isClosed && (
             <div className="bg-amber-50 border border-amber-300 text-amber-900 p-3.5 rounded-xl text-xs font-semibold space-y-1">
               <p className="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
                 ⏰ Same-Day Order Closed (Cutoff: 6:30 PM)
@@ -228,16 +239,55 @@ export default function OrderModal({ open, onClose, selectedDay }) {
             </div>
           )}
 
+          {/* Timings banner for Thepla */}
+          {selectedDay.isThepla && (
+            <div className="bg-amber-50 border border-saffron/30 text-ink p-3.5 rounded-xl text-xs flex items-center gap-2 font-medium">
+              <span className="text-base">⚡</span>
+              <span><strong>Daily Availability:</strong> Available for doorstep delivery daily from <strong>12:00 PM to 12:00 AM</strong>!</span>
+            </div>
+          )}
+
           {/* Meal Details Box */}
           <div className="bg-cream-soft border border-cream-line p-4 rounded-xl flex items-center justify-between">
             <div>
               <p className="font-display font-semibold text-ink text-base">{selectedDay.title}</p>
               <p className="text-xs text-ink-soft mt-0.5">
-                {selectedDay.items ? selectedDay.items.join(" • ") : "Home cooked delicious thali"}
+                {selectedDay.items ? selectedDay.items.join(" • ") : "Home cooked delicious meal"}
               </p>
             </div>
             <span className="font-display text-2xl font-bold text-rajras-red">₹{unitPrice}</span>
           </div>
+
+          {/* Add-on selection for Methi Thepla */}
+          {selectedDay.isThepla && (
+            <div className="bg-emerald-50/70 border border-emerald-200 p-4 rounded-xl space-y-2">
+              <p className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                🌶️ Special Add-on Option
+              </p>
+              <label
+                onClick={() => setHasBharvaMirch(!hasBharvaMirch)}
+                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                  hasBharvaMirch ? "bg-white border-emerald-500 shadow-sm" : "bg-white/60 border-emerald-200"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={hasBharvaMirch}
+                    onChange={(e) => setHasBharvaMirch(e.target.checked)}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <div>
+                    <p className="text-xs font-bold text-ink">Add Bharva Mirch</p>
+                    <p className="text-[11px] text-ink-soft">Delicious homemade stuffed chili pickle</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                  +₹10 extra
+                </span>
+              </label>
+            </div>
+          )}
 
           {/* Friday Special Options */}
           {selectedDay.isSpecial && selectedDay.options && (

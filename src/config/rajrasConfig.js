@@ -23,6 +23,17 @@ export const rajrasConfig = {
   deliveryArea: "Civil Lines, Malviya Nagar & Raja Park, Jaipur",
   deliveryTimings: "Lunch: 12:00 PM – 2:30 PM | Dinner: 7:30 PM – 9:30 PM",
 
+  specialThepla: {
+    title: "Fresh Methi Thepla & Achar",
+    price: 60,
+    timings: "12:00 PM to 12:00 AM (Daily)",
+    addon: {
+      name: "Bharva Mirch",
+      price: 10,
+    },
+    description: "Soft & flavorful Gujarati Methi Thepla served with homemade pickle.",
+  },
+
   instagramUrl: "https://instagram.com",
 };
 

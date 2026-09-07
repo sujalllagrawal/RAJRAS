@@ -1,12 +1,14 @@
 import { rajrasConfig } from "../config/rajrasConfig";
 
-export function buildOrderMessage({ dayData, selectedFridayOption, name, phone, address, quantity, instructions, couponCode, discount, total: calculatedTotal }) {
+export function buildOrderMessage({ dayData, selectedFridayOption, selectedAddon, name, phone, address, quantity, instructions, couponCode, discount, total: calculatedTotal }) {
   const priceEach = dayData.price || rajrasConfig.price;
   const itemTotal = priceEach * quantity;
   const total = calculatedTotal !== undefined ? calculatedTotal : (itemTotal + rajrasConfig.deliveryCharge);
 
   let mealText = "";
-  if (dayData.isSpecial && selectedFridayOption) {
+  if (dayData.isThepla) {
+    mealText = selectedAddon ? `Methi Thepla & Achar (+ ${selectedAddon.name})` : "Methi Thepla & Achar";
+  } else if (dayData.isSpecial && selectedFridayOption) {
     mealText = `Friday Special — ${selectedFridayOption}`;
   } else if (dayData.items && dayData.items.length > 0) {
     mealText = `${dayData.day} (${dayData.items.join(" + ")})`;
@@ -15,23 +17,27 @@ export function buildOrderMessage({ dayData, selectedFridayOption, name, phone, 
   }
 
   const lines = [
-    `Hello ${rajrasConfig.businessName}! I would like to order a tiffin.`,
+    `Hello ${rajrasConfig.businessName}! I would like to place an order.`,
     "",
     `Name: ${name}`,
     `Phone: ${phone}`,
     `Address: ${address}`,
-    `Day: ${dayData.day}`,
-    `Meal: ${mealText}`,
+    `Item: ${mealText}`,
     `Quantity: ${quantity}`,
-    `Price: ₹${priceEach} each`,
-    `Delivery: FREE`,
+    `Base Price: ₹${priceEach} each`,
   ];
+
+  if (selectedAddon) {
+    lines.push(`Add-on: ${selectedAddon.name} (+₹${selectedAddon.price} each)`);
+  }
+
+  lines.push(`Delivery: FREE`);
 
   if (couponCode && discount > 0) {
     lines.push(`Coupon Applied: ${couponCode} (-₹${discount})`);
   }
 
-  lines.push(`Total: ₹${total}`);
+  lines.push(`Total Amount: ₹${total}`);
 
   if (instructions && instructions.trim()) {
     lines.push(`Special Instructions: ${instructions.trim()}`);
