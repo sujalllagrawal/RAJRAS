@@ -11,11 +11,11 @@ export const rajrasConfig = {
   supportingText:
     "Fresh, delicious and comforting Indian meals, prepared with the feeling of home and delivered straight to your doorstep.",
 
-  // Digits only, with country code, no + or spaces. Example: 916350054008
-  whatsappNumber: "916350054008",
+  // Digits only, with country code, no + or spaces. Example: 918769299887
+  whatsappNumber: "918769299887",
 
   // Shown in footer/contact
-  phoneNumber: "+91 63500 54008",
+  phoneNumber: "+91 87692 99887",
 
   price: 120,
   deliveryCharge: 0,
