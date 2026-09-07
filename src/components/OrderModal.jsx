@@ -76,40 +76,75 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       return;
     }
 
-    const savedCoupons = localStorage.getItem("rajrass_coupons");
-    const couponsList = savedCoupons
-      ? JSON.parse(savedCoupons)
-      : [
-          { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
-          { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
-          { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
-        ];
+    // Fetch active coupons from Supabase (or localStorage fallback)
+    let couponsList = [];
+    try {
+      const { data, error } = await supabase.from("coupons").select("*").eq("active", true);
+      if (!error && data && data.length > 0) {
+        couponsList = data;
+      } else {
+        const saved = localStorage.getItem("rajrass_coupons");
+        couponsList = saved
+          ? JSON.parse(saved).filter((c) => c.active)
+          : [
+              { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
+              { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
+              { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
+            ];
+      }
+    } catch (err) {
+      const saved = localStorage.getItem("rajrass_coupons");
+      couponsList = saved ? JSON.parse(saved).filter((c) => c.active) : [];
+    }
 
-    const match = couponsList.find((c) => c.code === code && c.active);
+    const match = couponsList.find((c) => c.code === code);
     if (!match) {
       setCouponError("Invalid or expired coupon code.");
       setAppliedCoupon(null);
       return;
     }
 
-    if (match.code === "FIRST10" || match.first_time_only) {
-      let isExisting = false;
+    // Check minimum order requirement
+    if (match.min_order_amount && subtotal < match.min_order_amount) {
+      setCouponError(`Minimum order amount of ₹${match.min_order_amount} required for this coupon.`);
+      setAppliedCoupon(null);
+      return;
+    }
+
+    // Enforce 1-time per user (phone number) usage
+    let alreadyUsed = false;
+
+    // 1. Check Supabase orders table for this phone number and coupon
+    try {
+      const { data: dbOrders } = await supabase
+        .from("orders")
+        .select("id, coupon_applied")
+        .eq("phone_number", phone.trim())
+        .eq("coupon_applied", code);
+
+      if (dbOrders && dbOrders.length > 0) {
+        alreadyUsed = true;
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    // 2. Check local storage orders fallback
+    if (!alreadyUsed) {
       try {
         const localOrders = JSON.parse(localStorage.getItem("rajrass_orders") || "[]");
-        isExisting = localOrders.some((o) => (o.phone_number || "").replace(/\D/g, "") === phoneDigits);
+        alreadyUsed = localOrders.some(
+          (o) =>
+            (o.phone_number || "").replace(/\D/g, "") === phoneDigits &&
+            (o.coupon_applied || "").toUpperCase() === code
+        );
       } catch (err) {
         // ignore
       }
-
-      if (isExisting) {
-        setCouponError("Coupon 'FIRST10' is valid for 1st-time customers only. Phone number already registered.");
-        setAppliedCoupon(null);
-        return;
-      }
     }
 
-    if (match.min_order_amount && subtotal < match.min_order_amount) {
-      setCouponError(`Minimum order amount of ₹${match.min_order_amount} required.`);
+    if (alreadyUsed) {
+      setCouponError(`Coupon '${code}' has already been used with phone number ${phone.trim()}. Valid 1 time per user only!`);
       setAppliedCoupon(null);
       return;
     }
