@@ -37,7 +37,7 @@ export default function TheplaSection({ onOrderThepla }) {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <div className="bg-cream border border-cream-line px-4 py-2.5 rounded-xl flex items-center gap-2">
                 <span className="text-xs text-ink-faint uppercase font-bold">Price:</span>
-                <span className="font-display text-2xl font-bold text-rajras-red">₹60</span>
+                <span className="font-display text-2xl font-bold text-rajras-red">₹59</span>
               </div>
 
               <div className="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl flex items-center gap-2">
@@ -56,7 +56,7 @@ export default function TheplaSection({ onOrderThepla }) {
                 onClick={onOrderThepla}
                 className="btn-primary w-full sm:w-auto !py-4 !px-8 !text-base shadow-lift"
               >
-                ORDER THEPLA (₹60)
+                ORDER THEPLA (₹59)
               </button>
               <p className="text-[11px] text-ink-faint">Free Doorstep Delivery • Freshly Prepared</p>
             </div>

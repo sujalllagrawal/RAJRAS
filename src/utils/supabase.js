@@ -21,7 +21,7 @@ export async function saveOrderToSupabase(orderData) {
     meal: orderData.meal,
     friday_option: orderData.fridayOption || null,
     quantity: orderData.quantity,
-    unit_price: orderData.unitPrice || 120,
+    unit_price: orderData.unitPrice || 119,
     total_price: orderData.total,
     special_instructions: orderData.instructions || null,
     coupon_applied: orderData.couponCode || null,

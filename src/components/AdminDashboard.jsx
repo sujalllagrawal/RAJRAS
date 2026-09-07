@@ -26,7 +26,7 @@ export default function AdminDashboard({ onLogout }) {
     return saved ? JSON.parse(saved) : initialWeeklyMenu;
   });
   const [editingDayIndex, setEditingDayIndex] = useState(null);
-  const [editForm, setEditForm] = useState({ title: "", description: "", price: 120, items: "" });
+  const [editForm, setEditForm] = useState({ title: "", description: "", price: 119, items: "" });
   const [menuMsg, setMenuMsg] = useState("");
 
   // Load orders from Supabase (or localStorage fallback)

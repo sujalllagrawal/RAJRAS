@@ -137,7 +137,7 @@ export default function WeeklyMenu({ onOrder }) {
                 ) : (
                   <div className="mb-6">
                     <p className="text-[12px] uppercase font-semibold tracking-widest2 text-ink-faint mb-3">
-                      Included in this ₹120 Meal:
+                      Included in this ₹119 Meal:
                     </p>
                     <ul className="grid sm:grid-cols-2 gap-2.5">
                       {activeDay.items.map((item, idx) => (

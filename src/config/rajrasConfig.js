@@ -7,7 +7,7 @@ export const rajrasConfig = {
   businessName: "RAJRASS",
   tagline: "Ghar Jaisa Khana. Har Roz.",
   subTagline: "A proper ghar-style meal, delivered to your doorstep.",
-  headline: "Ghar Jaisa Khana. Sirf ₹120.",
+  headline: "Ghar Jaisa Khana. Sirf ₹119.",
   supportingText:
     "Fresh, delicious and comforting Indian meals, prepared with the feeling of home and delivered straight to your doorstep.",
 
@@ -17,7 +17,7 @@ export const rajrasConfig = {
   // Shown in footer/contact
   phoneNumber: "+91 87692 99887",
 
-  price: 120,
+  price: 119,
   deliveryCharge: 0,
 
   deliveryArea: "Civil Lines, Malviya Nagar & Raja Park, Jaipur",
@@ -25,7 +25,7 @@ export const rajrasConfig = {
 
   specialThepla: {
     title: "3 Fresh Methi Thepla & Homemade Achar",
-    price: 60,
+    price: 59,
     timings: "12:00 PM to 12:00 AM (Daily)",
     items: ["3 Methi Thepla", "Homemade Achar"],
     addon: {
@@ -47,7 +47,7 @@ export const weeklyMenu = [
     dayCode: 1,
     title: "Monday Special",
     items: ["Chole", "Moong Dal", "Rice", "5 Roti", "Pickle"],
-    price: 120,
+    price: 119,
     image: "/images/monday_chole.png",
     description: "Rich spiced Chole paired with light yellow Moong Dal and fresh rotis.",
   },
@@ -56,7 +56,7 @@ export const weeklyMenu = [
     dayCode: 2,
     title: "Tuesday Special",
     items: ["Rajma", "Aloo", "Rice", "5 Roti", "Pickle"],
-    price: 120,
+    price: 119,
     image: "/images/hero_thali.png",
     description: "Classic comforting Rajma masala with spiced Aloo sabzi and rice.",
   },
@@ -65,7 +65,7 @@ export const weeklyMenu = [
     dayCode: 3,
     title: "Wednesday Special",
     items: ["Gatta", "Dal", "Rice", "5 Roti"],
-    price: 120,
+    price: 119,
     image: "/images/hero_thali.png",
     description: "Authentic Rajasthani Gatta curry served with warm home-style dal.",
   },
@@ -74,7 +74,7 @@ export const weeklyMenu = [
     dayCode: 4,
     title: "Thursday Special",
     items: ["Dal Makhani", "Matar Paneer", "Rice", "5 Roti"],
-    price: 120,
+    price: 119,
     image: "/images/hero_thali.png",
     description: "Slow-cooked velvety Dal Makhani accompanied by fresh Matar Paneer.",
   },
@@ -83,7 +83,7 @@ export const weeklyMenu = [
     dayCode: 5,
     isSpecial: true,
     title: "FRIDAY SPECIAL",
-    price: 120,
+    price: 119,
     image: "/images/friday_dal_baati.png",
     description: "A festive Friday feast. Choose your preferred combination.",
     options: [
@@ -98,7 +98,7 @@ export const weeklyMenu = [
     dayCode: 6,
     title: "Saturday Special",
     items: ["Seasonal Sabzi", "Kadhi Chawal", "5 Chapati"],
-    price: 120,
+    price: 119,
     image: "/images/hero_thali.png",
     description: "Tangy Indian Kadhi Chawal with fresh seasonal sabzi and chapati.",
   },
@@ -107,7 +107,7 @@ export const weeklyMenu = [
     dayCode: 0,
     title: "Sunday Special",
     items: ["Bhindi", "Dal Makhani", "5 Roti", "Rice"],
-    price: 120,
+    price: 119,
     image: "/images/hero_thali.png",
     description: "Crispy spiced Bhindi stir-fry with slow-cooked Dal Makhani, 5 soft rotis & steamed rice.",
   },
@@ -157,7 +157,7 @@ export const whyRajras = [
     description: "Simple, comforting food that feels familiar and easy on the stomach.",
   },
   {
-    title: "₹120 Every Meal",
+    title: "₹119 Every Meal",
     description: "A complete home-style meal without the restaurant price tag.",
   },
   {
@@ -203,7 +203,7 @@ export const testimonials = [
   },
   {
     quote:
-      "₹120 with free delivery is really convenient for daily meals. The rotis are soft and dal tastes authentic.",
+      "₹119 with free delivery is really convenient for daily meals. The rotis are soft and dal tastes authentic.",
     name: "Pooja Verma",
     role: "Working Professional",
   },
@@ -218,7 +218,7 @@ export const testimonials = [
 // FAQs
 export const faqs = [
   {
-    q: "What is included in the ₹120 tiffin?",
+    q: "What is included in the ₹119 tiffin?",
     a: "The menu varies by day. For example, Monday includes Chole, Moong Dal, Rice, 5 Roti, and Pickle, while Sunday features Bhindi, Dal Makhani, 5 Roti, and Rice. Check our weekly menu above for each day's exact menu.",
   },
   {

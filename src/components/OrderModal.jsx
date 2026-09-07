@@ -364,7 +364,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                         <p className="text-[11px] text-ink-faint">{opt.detail}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-rajras-red">₹120</span>
+                    <span className="text-xs font-bold text-rajras-red">₹119</span>
                   </div>
                 ))}
               </div>
