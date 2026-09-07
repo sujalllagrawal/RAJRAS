@@ -76,28 +76,40 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       return;
     }
 
-    // Fetch active coupons from Supabase (or localStorage fallback)
-    let couponsList = [];
+    // Fetch active coupons from Supabase and merge with default list
+    const defaultCoupons = [
+      { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
+      { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
+      { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
+    ];
+
+    let couponsList = [...defaultCoupons];
+
+    try {
+      const saved = localStorage.getItem("rajrass_coupons");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          couponsList = parsed;
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
     try {
       const { data, error } = await supabase.from("coupons").select("*").eq("active", true);
       if (!error && data && data.length > 0) {
-        couponsList = data;
-      } else {
-        const saved = localStorage.getItem("rajrass_coupons");
-        couponsList = saved
-          ? JSON.parse(saved).filter((c) => c.active)
-          : [
-              { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
-              { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
-              { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
-            ];
+        // Merge DB coupons into couponsList (prefer DB coupons)
+        const dbCodes = new Set(data.map((c) => c.code));
+        const filteredDefault = couponsList.filter((c) => !dbCodes.has(c.code));
+        couponsList = [...data, ...filteredDefault];
       }
     } catch (err) {
-      const saved = localStorage.getItem("rajrass_coupons");
-      couponsList = saved ? JSON.parse(saved).filter((c) => c.active) : [];
+      // ignore
     }
 
-    const match = couponsList.find((c) => c.code === code);
+    const match = couponsList.find((c) => (c.code || "").toUpperCase() === code && c.active !== false);
     if (!match) {
       setCouponError("Invalid or expired coupon code.");
       setAppliedCoupon(null);
