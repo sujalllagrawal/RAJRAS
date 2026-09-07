@@ -78,7 +78,7 @@ export default function OrderModal({ open, onClose, selectedDay }) {
 
     // Fetch active coupons from Supabase and merge with default list
     const defaultCoupons = [
-      { id: 1, code: "FIRST10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, first_time_only: true, active: true },
+      { id: 1, code: "FIRST30", discount_type: "FLAT", discount_value: 30, min_order_amount: 120, first_time_only: true, active: true },
       { id: 2, code: "WELCOME10", discount_type: "PERCENT", discount_value: 10, min_order_amount: 120, active: true },
       { id: 3, code: "FLAT20", discount_type: "FLAT", discount_value: 20, min_order_amount: 120, active: true },
     ];
@@ -468,13 +468,13 @@ export default function OrderModal({ open, onClose, selectedDay }) {
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-bold text-ink uppercase tracking-wider">Have a Coupon?</label>
               <span className="text-[10px] font-bold text-rajras-red bg-rajras-red/10 px-2 py-0.5 rounded">
-                1st Order Code: FIRST10
+                1st Order Code: FIRST30
               </span>
             </div>
             <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="Enter coupon code (e.g. FIRST10)"
+                placeholder="Enter coupon code (e.g. FIRST30)"
                 value={couponInput}
                 onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                 className="flex-1 bg-white border border-cream-line rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase focus:outline-none focus:border-rajras-red"

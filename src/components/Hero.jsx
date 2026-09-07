@@ -51,9 +51,9 @@ export default function Hero({ onOrder }) {
               <span className="text-lg">🎉</span>
               <div>
                 <span className="text-[12px] font-bold text-rajras-red uppercase tracking-wider block">
-                  1ST ORDER COUPON: <code className="bg-rajras-red text-cream px-1.5 py-0.5 rounded font-mono font-bold">FIRST10</code>
+                  1ST ORDER COUPON: <code className="bg-rajras-red text-cream px-1.5 py-0.5 rounded font-mono font-bold">FIRST30</code>
                 </span>
-                <span className="text-[11px] text-ink-soft">10% OFF for 1st-time customers (1 use per phone no.)</span>
+                <span className="text-[11px] text-ink-soft">Flat ₹30 OFF on your 1st order (1 use per phone no.)</span>
               </div>
             </div>
           </div>
