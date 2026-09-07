@@ -1,23 +1,38 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { rajrasConfig } from "../config/rajrasConfig";
 import { buildOrderMessage, buildWhatsAppUrl } from "../utils/whatsapp";
 import { saveOrderToSupabase } from "../utils/supabase";
 
-const emptyForm = { name: "", phone: "", address: "", quantity: 1, instructions: "" };
-
 export default function OrderModal({ open, onClose, selectedDay }) {
-  const [form, setForm] = useState(emptyForm);
-  const [errors, setErrors] = useState({});
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [specialInstructions, setSpecialInstructions] = useState("");
   const [selectedFridayOption, setSelectedFridayOption] = useState("");
-  const [submittedSuccess, setSubmittedSuccess] = useState(false);
+  
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  
+  const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
+  // Reset states when modal opens
   useEffect(() => {
     if (open) {
-      setForm(emptyForm);
-      setErrors({});
-      setSubmittedSuccess(false);
+      setName("");
+      setPhone("");
+      setAddress("");
+      setQuantity(1);
+      setSpecialInstructions("");
+      setCouponInput("");
+      setAppliedCoupon(null);
+      setCouponError("");
+      setFormErrors({});
       setIsSubmitting(false);
+      setIsSuccess(false);
 
       if (selectedDay?.isSpecial && selectedDay?.options?.length > 0) {
         setSelectedFridayOption(selectedDay.options[0].label);
@@ -27,33 +42,35 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     }
   }, [open, selectedDay]);
 
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [couponError, setCouponError] = useState("");
+  if (!open || !selectedDay) return null;
 
-  const itemTotal = (selectedDay.price || rajrasConfig.price) * form.quantity;
+  const unitPrice = selectedDay.price || rajrasConfig.price;
+  const subtotal = unitPrice * quantity;
+  
   let discount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discount_type === "FLAT") {
       discount = appliedCoupon.discount_value;
     } else if (appliedCoupon.discount_type === "PERCENT") {
-      discount = (itemTotal * appliedCoupon.discount_value) / 100;
+      discount = (subtotal * appliedCoupon.discount_value) / 100;
     }
   }
-  const total = Math.max(0, itemTotal + rajrasConfig.deliveryCharge - discount);
+  const totalAmount = Math.max(0, subtotal + rajrasConfig.deliveryCharge - discount);
 
-  async function handleApplyCoupon() {
+  // Coupon verification
+  async function handleApplyCoupon(e) {
+    e.preventDefault();
     setCouponError("");
-    const code = couponCode.trim().toUpperCase();
+
+    const code = couponInput.trim().toUpperCase();
     if (!code) return;
 
-    const phoneDigits = form.phone.trim().replace(/\D/g, "");
+    const phoneDigits = phone.trim().replace(/\D/g, "");
     if (!phoneDigits || phoneDigits.length < 10) {
-      setCouponError("Please enter your valid 10-digit phone number above first to verify coupon eligibility.");
+      setCouponError("Please enter your 10-digit Phone Number first to apply coupon.");
       return;
     }
 
-    // Load active coupons
     const savedCoupons = localStorage.getItem("rajrass_coupons");
     const couponsList = savedCoupons
       ? JSON.parse(savedCoupons)
@@ -70,42 +87,23 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       return;
     }
 
-    // Check one-time coupon restriction for FIRST10 or first_time_only coupons
     if (match.code === "FIRST10" || match.first_time_only) {
-      let isExistingCustomer = false;
-
-      // Check local storage orders
+      let isExisting = false;
       try {
         const localOrders = JSON.parse(localStorage.getItem("rajrass_orders") || "[]");
-        isExistingCustomer = localOrders.some(
-          (o) => (o.phone_number || "").replace(/\D/g, "") === phoneDigits
-        );
-      } catch (e) {
+        isExisting = localOrders.some((o) => (o.phone_number || "").replace(/\D/g, "") === phoneDigits);
+      } catch (err) {
         // ignore
       }
 
-      // Also check Supabase DB orders if available
-      try {
-        const { data, error } = await supabase
-          .from("orders")
-          .select("id, phone_number")
-          .eq("phone_number", form.phone.trim());
-
-        if (!error && data && data.length > 0) {
-          isExistingCustomer = true;
-        }
-      } catch (e) {
-        // fallback to local check
-      }
-
-      if (isExistingCustomer) {
-        setCouponError("Coupon 'FIRST10' is valid for 1st-time orders only. This phone number has already placed an order.");
+      if (isExisting) {
+        setCouponError("Coupon 'FIRST10' is valid for 1st-time customers only. Phone number already registered.");
         setAppliedCoupon(null);
         return;
       }
     }
 
-    if (match.min_order_amount && itemTotal < match.min_order_amount) {
+    if (match.min_order_amount && subtotal < match.min_order_amount) {
       setCouponError(`Minimum order amount of ₹${match.min_order_amount} required.`);
       setAppliedCoupon(null);
       return;
@@ -115,23 +113,18 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     setCouponError("");
   }
 
-  function changeQty(delta) {
-    setForm((f) => ({ ...f, quantity: Math.max(1, f.quantity + delta) }));
-  }
-
   function validate() {
-    const next = {};
-    if (!form.name.trim()) next.name = "Please enter your name";
-    if (!/^[0-9+\s-]{8,15}$/.test(form.phone.trim())) next.phone = "Please enter a valid 10-digit phone number";
-    if (!form.address.trim() || form.address.trim().length < 5)
-      next.address = "Please enter your full delivery address";
-    
+    const errors = {};
+    if (!name.trim()) errors.name = "Enter your name";
+    if (!/^[0-9+\s-]{8,15}$/.test(phone.trim())) errors.phone = "Enter a valid 10-digit phone number";
+    if (!address.trim() || address.trim().length < 4) errors.address = "Enter your full delivery address";
+
     if (selectedDay.isSpecial && !selectedFridayOption) {
-      next.fridayOption = "Please select one Friday meal option";
+      errors.fridayOption = "Select one Friday meal option";
     }
 
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   async function handleSubmit(e) {
@@ -149,314 +142,284 @@ export default function OrderModal({ open, onClose, selectedDay }) {
       mealText = `${selectedDay.day} RAJRASS Tiffin`;
     }
 
-    // Save order data asynchronously to Supabase
+    // Save order data
     await saveOrderToSupabase({
-      name: form.name,
-      phone: form.phone,
-      address: form.address,
+      name,
+      phone,
+      address,
       day: selectedDay.day,
       meal: mealText,
       fridayOption: selectedFridayOption || null,
-      quantity: form.quantity,
-      unitPrice: rajrasConfig.price,
-      total,
-      instructions: form.instructions,
+      quantity,
+      unitPrice,
+      total: totalAmount,
+      instructions: specialInstructions,
+      couponCode: appliedCoupon ? appliedCoupon.code : null,
     });
 
-    // Build WhatsApp URL and open chat
+    // Build WhatsApp URL
     const message = buildOrderMessage({
       dayData: selectedDay,
       selectedFridayOption,
-      name: form.name,
-      phone: form.phone,
-      address: form.address,
-      quantity: form.quantity,
-      instructions: form.instructions,
+      name,
+      phone,
+      address,
+      quantity,
+      instructions: specialInstructions,
       couponCode: appliedCoupon ? appliedCoupon.code : null,
       discount,
-      total,
+      total: totalAmount,
     });
 
     const url = buildWhatsAppUrl(message);
     window.open(url, "_blank", "noopener,noreferrer");
 
     setIsSubmitting(false);
-    setSubmittedSuccess(true);
+    setIsSuccess(true);
   }
-
-  function changeQty(delta) {
-    setForm((f) => ({ ...f, quantity: Math.max(1, Math.min(15, f.quantity + delta)) }));
-  }
-
-  if (!open || !selectedDay) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-ink/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+    <div className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-ink/70 backdrop-blur-sm">
+      {/* Click outside to close backdrop */}
+      <div className="absolute inset-0" onClick={onClose} />
 
-      {/* Modal / Bottom Sheet */}
-      <div className="relative z-10 bg-cream w-full sm:max-w-lg sm:rounded-tiffin rounded-t-2xl shadow-lift max-h-[90vh] flex flex-col overflow-hidden animate-riseIn">
+      {/* Premium Order Card */}
+      <div className="relative z-10 bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-cream-line">
+        
         {/* Header */}
-        <div className="shrink-0 bg-cream border-b border-cream-line px-6 py-4 flex items-center justify-between">
+        <div className="bg-cream border-b border-cream-line px-6 py-4 flex items-center justify-between">
           <div>
-            <h3 className="font-display text-[22px] font-semibold text-ink">
-              Order Your {selectedDay.day} Tiffin
+            <span className="text-[11px] font-bold tracking-widest text-rajras-red uppercase bg-rajras-red/10 px-2 py-0.5 rounded">
+              RAJRASS TIFFIN ORDER
+            </span>
+            <h3 className="font-display text-xl font-bold text-ink mt-0.5">
+              {selectedDay.day} Meal Order
             </h3>
-            <p className="text-[12px] text-ink-soft">Fast WhatsApp Ordering • Synced with Supabase</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-ink-soft hover:bg-cream-soft hover:text-ink transition-colors"
+            className="w-8 h-8 rounded-full bg-cream-soft border border-cream-line flex items-center justify-center text-ink-soft hover:text-ink font-bold text-sm transition-colors"
           >
             ✕
           </button>
         </div>
 
-        {/* Content area */}
-        <div className="overflow-y-auto px-6 py-5 space-y-6 flex-1">
-          {/* Selected Meal Card */}
-          <div className="bg-white border border-cream-line rounded-tiffin p-4 shadow-sm">
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-rajras-red/10 text-rajras-red font-semibold text-[11px] uppercase tracking-wider mb-1">
-                  {selectedDay.day} Meal
-                </span>
-                <h4 className="font-display text-xl font-semibold text-ink">
-                  {selectedDay.title}
-                </h4>
+        {/* Form Body - Scrollable */}
+        <div className="overflow-y-auto p-5 sm:p-6 space-y-5">
+          
+          {/* Meal Details Box */}
+          <div className="bg-cream-soft border border-cream-line p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <p className="font-display font-semibold text-ink text-base">{selectedDay.title}</p>
+              <p className="text-xs text-ink-soft mt-0.5">
+                {selectedDay.items ? selectedDay.items.join(" • ") : "Home cooked delicious thali"}
+              </p>
+            </div>
+            <span className="font-display text-2xl font-bold text-rajras-red">₹{unitPrice}</span>
+          </div>
+
+          {/* Friday Special Options */}
+          {selectedDay.isSpecial && selectedDay.options && (
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider">
+                Choose Friday Combination <span className="text-rajras-red">*</span>
+              </label>
+              <div className="grid gap-2">
+                {selectedDay.options.map((opt) => (
+                  <div
+                    key={opt.id}
+                    onClick={() => setSelectedFridayOption(opt.label)}
+                    className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between transition-all ${
+                      selectedFridayOption === opt.label
+                        ? "border-rajras-red bg-rajras-red/5 font-semibold"
+                        : "border-cream-line bg-white hover:border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        selectedFridayOption === opt.label ? "border-rajras-red bg-rajras-red" : "border-gray-400"
+                      }`}>
+                        {selectedFridayOption === opt.label && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                      <div>
+                        <p className="text-sm text-ink">{opt.label}</p>
+                        <p className="text-[11px] text-ink-faint">{opt.detail}</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-rajras-red">₹120</span>
+                  </div>
+                ))}
               </div>
-              <span className="font-display text-2xl font-semibold text-rajras-red">₹{rajrasConfig.price}</span>
+              {formErrors.fridayOption && <p className="text-xs text-rajras-red font-semibold">{formErrors.fridayOption}</p>}
+            </div>
+          )}
+
+          {/* Form Controls */}
+          <form id="tiffinForm" onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Customer Name */}
+            <div>
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
+                Your Full Name <span className="text-rajras-red">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter your name (e.g. Rahul Sharma)"
+                className="w-full bg-white border border-cream-line rounded-xl px-4 py-3 text-sm text-ink font-medium focus:outline-none focus:border-rajras-red focus:ring-1 focus:ring-rajras-red"
+              />
+              {formErrors.name && <p className="text-xs text-rajras-red mt-1 font-semibold">{formErrors.name}</p>}
             </div>
 
-            {!selectedDay.isSpecial && selectedDay.items && (
-              <p className="mt-2 text-[13.5px] text-ink-soft leading-relaxed">
-                Includes: <span className="font-medium text-ink">{selectedDay.items.join(" • ")}</span>
+            {/* Phone Number */}
+            <div>
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
+                Phone Number <span className="text-rajras-red">*</span>
+              </label>
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="10-digit mobile number"
+                className="w-full bg-white border border-cream-line rounded-xl px-4 py-3 text-sm text-ink font-medium focus:outline-none focus:border-rajras-red focus:ring-1 focus:ring-rajras-red"
+              />
+              {formErrors.phone && <p className="text-xs text-rajras-red mt-1 font-semibold">{formErrors.phone}</p>}
+            </div>
+
+            {/* Delivery Address */}
+            <div>
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
+                Delivery Address <span className="text-rajras-red">*</span>
+              </label>
+              <textarea
+                required
+                rows={2}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Flat / House No., Landmark, Area details"
+                className="w-full bg-white border border-cream-line rounded-xl px-4 py-2.5 text-sm text-ink font-medium focus:outline-none focus:border-rajras-red focus:ring-1 focus:ring-rajras-red resize-none"
+              />
+              {formErrors.address && <p className="text-xs text-rajras-red mt-1 font-semibold">{formErrors.address}</p>}
+            </div>
+
+            {/* Quantity Selector */}
+            <div className="flex items-center justify-between bg-cream-soft border border-cream-line p-3 rounded-xl">
+              <div>
+                <p className="text-xs font-bold text-ink uppercase tracking-wider">Number of Tiffins</p>
+                <p className="text-xs text-ink-soft">₹{unitPrice} per meal</p>
+              </div>
+              <div className="flex items-center gap-3 bg-white border border-cream-line rounded-lg p-1">
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="w-8 h-8 rounded flex items-center justify-center font-bold text-ink hover:bg-cream-soft"
+                >
+                  −
+                </button>
+                <span className="font-bold text-base text-ink w-6 text-center">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity((q) => Math.min(15, q + 1))}
+                  className="w-8 h-8 rounded flex items-center justify-center font-bold text-ink hover:bg-cream-soft"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Special Instructions */}
+            <div>
+              <label className="block text-xs font-bold text-ink uppercase tracking-wider mb-1">
+                Special Instructions <span className="text-ink-faint font-normal">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={specialInstructions}
+                onChange={(e) => setSpecialInstructions(e.target.value)}
+                placeholder="Less spicy / No onion / Call on arrival"
+                className="w-full bg-white border border-cream-line rounded-xl px-4 py-2.5 text-sm text-ink font-medium focus:outline-none focus:border-rajras-red focus:ring-1 focus:ring-rajras-red"
+              />
+            </div>
+          </form>
+
+          {/* Coupon Code Input */}
+          <div className="pt-2 border-t border-cream-line">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-bold text-ink uppercase tracking-wider">Have a Coupon?</label>
+              <span className="text-[10px] font-bold text-rajras-red bg-rajras-red/10 px-2 py-0.5 rounded">
+                1st Order Code: FIRST10
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter coupon code (e.g. FIRST10)"
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                className="flex-1 bg-white border border-cream-line rounded-xl px-3 py-2 text-xs font-mono font-bold uppercase focus:outline-none focus:border-rajras-red"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                className="bg-cream border border-cream-line text-ink hover:border-rajras-red hover:text-rajras-red text-xs font-bold px-4 rounded-xl transition-colors"
+              >
+                Apply
+              </button>
+            </div>
+            {couponError && <p className="text-xs text-rajras-red mt-1 font-semibold">{couponError}</p>}
+            {appliedCoupon && (
+              <p className="text-xs text-green-700 mt-1 font-semibold">
+                ✓ Coupon "{appliedCoupon.code}" applied successfully!
               </p>
             )}
           </div>
 
-          {/* Form fields */}
-          <form id="orderForm" onSubmit={handleSubmit} className="space-y-4">
-            {/* Friday Special Options Selector */}
-            {selectedDay.isSpecial && selectedDay.options && (
-              <div className="mb-4">
-                <label className="block font-display text-[16px] font-semibold text-ink mb-2">
-                  Choose your Friday meal option <span className="text-rajras-red">*</span>
-                </label>
-                <div className="space-y-2.5">
-                  {selectedDay.options.map((opt) => {
-                    const isSelected = selectedFridayOption === opt.label;
-                    return (
-                      <label
-                        key={opt.id}
-                        className={`flex items-center justify-between p-3.5 rounded-tiffin border cursor-pointer transition-all ${
-                          isSelected
-                            ? "border-rajras-red bg-rajras-red/5 shadow-sm"
-                            : "border-cream-line bg-white hover:border-ink/30"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="friday_option_radio"
-                            checked={isSelected}
-                            onChange={() => setSelectedFridayOption(opt.label)}
-                            className="sr-only"
-                          />
-                          <div
-                            onClick={() => setSelectedFridayOption(opt.label)}
-                            className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                              isSelected ? "border-rajras-red bg-rajras-red" : "border-ink/40 bg-white"
-                            }`}
-                          >
-                            {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cream" />}
-                          </div>
-                          <div onClick={() => setSelectedFridayOption(opt.label)}>
-                            <p className="font-semibold text-[14.5px] text-ink">{opt.label}</p>
-                            <p className="text-[12px] text-ink-faint">{opt.detail}</p>
-                          </div>
-                        </div>
-                        <span className="font-display font-semibold text-[14px] text-rajras-red">₹120</span>
-                      </label>
-                    );
-                  })}
-                </div>
-                {errors.fridayOption && (
-                  <p className="mt-1.5 text-[12.5px] text-rajras-red font-medium">{errors.fridayOption}</p>
-                )}
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="customer_name" className="block text-[13px] font-semibold text-ink-soft mb-1">
-                Your Name <span className="text-rajras-red">*</span>
-              </label>
-              <input
-                id="customer_name"
-                type="text"
-                name="name"
-                autoComplete="name"
-                value={form.name}
-                onChange={(e) => update("name", e.target.value)}
-                placeholder="e.g. Rahul Sharma"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red"
-              />
-              {errors.name && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.name}</p>}
+          {/* Order Summary */}
+          <div className="bg-cream-soft border border-cream-line rounded-xl p-4 space-y-2">
+            <div className="flex justify-between text-xs text-ink-soft">
+              <span>{selectedDay.day} Tiffin × {quantity}</span>
+              <span className="font-bold text-ink">₹{subtotal}</span>
             </div>
-
-            <div>
-              <label htmlFor="customer_phone" className="block text-[13px] font-semibold text-ink-soft mb-1">
-                Phone Number <span className="text-rajras-red">*</span>
-              </label>
-              <input
-                id="customer_phone"
-                type="tel"
-                name="phone"
-                autoComplete="tel"
-                value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
-                placeholder="10-digit mobile number"
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-3 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red"
-              />
-              {errors.phone && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.phone}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="delivery_address" className="block text-[13px] font-semibold text-ink-soft mb-1">
-                Delivery Address <span className="text-rajras-red">*</span>
-              </label>
-              <textarea
-                id="delivery_address"
-                name="address"
-                autoComplete="street-address"
-                value={form.address}
-                onChange={(e) => update("address", e.target.value)}
-                placeholder="Flat / PG / House no., street, landmark, area"
-                rows={2}
-                className="w-full rounded-tiffin border border-cream-line bg-white px-4 py-2.5 text-[14.5px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-rajras-red/40 focus:border-rajras-red resize-none"
-              />
-              {errors.address && <p className="mt-1 text-[12.5px] text-rajras-red">{errors.address}</p>}
-            </div>
-
-            <div>
-              <label className="block text-[13px] font-semibold text-ink-soft mb-1.5">Number of Tiffins</label>
-              <div className="flex items-center gap-4">
-                <div className="inline-flex items-center border border-cream-line bg-white rounded-tiffin overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => changeQty(-1)}
-                    className="w-10 h-10 flex items-center justify-center text-ink text-lg font-semibold hover:bg-cream-soft transition-colors"
-                  >
-                    −
-                  </button>
-                  <span className="w-10 text-center font-display text-lg font-semibold text-ink">
-                    {form.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => changeQty(1)}
-                    className="w-10 h-10 flex items-center justify-center text-ink text-lg font-semibold hover:bg-cream-soft transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
-                <span className="text-[13px] text-ink-soft font-medium">
-                  = ₹{rajrasConfig.price * form.quantity}
-                </span>
-              </div>
-            </div>
-
-            {/* Coupon Code Section */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[13px] font-semibold text-ink-soft">
-                  Have a Coupon Code?
-                </label>
-                <span className="text-[11px] font-bold text-rajras-red bg-rajras-red/10 px-2 py-0.5 rounded">
-                  1st Order Code: FIRST10
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="e.g. FIRST10"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  className="flex-1 rounded-tiffin border border-cream-line bg-white px-3 py-2 text-xs uppercase font-mono font-semibold focus:outline-none focus:border-rajras-red"
-                />
-                <button
-                  type="button"
-                  onClick={handleApplyCoupon}
-                  className="bg-cream border border-cream-line text-ink hover:border-rajras-red hover:text-rajras-red text-xs font-semibold px-4 rounded-tiffin transition-all"
-                >
-                  Apply
-                </button>
-              </div>
-              {couponError && <p className="mt-1 text-[12px] text-rajras-red">{couponError}</p>}
-              {appliedCoupon && (
-                <p className="mt-1 text-[12px] text-green-700 font-semibold">
-                  ✓ Coupon "{appliedCoupon.code}" applied!
-                </p>
-              )}
-            </div>
-          </form>
-
-          {/* Order Summary Box */}
-          <div className="bg-cream-soft/80 border border-cream-line rounded-tiffin p-4 space-y-2">
-            <p className="text-[11px] tracking-widest2 uppercase font-semibold text-ink-faint">
-              Order Summary
-            </p>
-            <div className="flex justify-between text-[13.5px] text-ink-soft">
-              <span>
-                {selectedDay.day} Tiffin × {form.quantity}
-              </span>
-              <span className="font-semibold text-ink">₹{itemTotal}</span>
-            </div>
-
             {discount > 0 && (
-              <div className="flex justify-between text-[13.5px] text-green-700 font-semibold">
-                <span>Coupon Discount</span>
+              <div className="flex justify-between text-xs text-green-700 font-bold">
+                <span>Coupon Discount ({appliedCoupon?.code})</span>
                 <span>- ₹{discount}</span>
               </div>
             )}
-
-            <div className="flex justify-between text-[13.5px] text-ink-soft">
+            <div className="flex justify-between text-xs text-ink-soft">
               <span>Doorstep Delivery</span>
-              <span className="text-saffron font-semibold">FREE</span>
+              <span className="text-saffron font-bold">FREE</span>
             </div>
-            <div className="flex justify-between items-center pt-2.5 border-t border-cream-line">
-              <span className="font-display font-semibold text-ink text-[16px]">Total Payable</span>
-              <span className="font-display text-2xl font-semibold text-rajras-red">₹{total}</span>
+            <div className="flex justify-between items-center pt-2 border-t border-cream-line">
+              <span className="font-bold text-ink text-sm">Total Payable</span>
+              <span className="font-display font-bold text-2xl text-rajras-red">₹{totalAmount}</span>
             </div>
           </div>
 
-          {/* Success banner */}
-          {submittedSuccess && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-tiffin p-3.5 text-center text-[13.5px]">
-              <p className="font-semibold">Order saved & ready on WhatsApp!</p>
-              <p className="text-[12.5px] opacity-90">Just press <strong>Send</strong> in WhatsApp to complete your order.</p>
+          {isSuccess && (
+            <div className="bg-green-50 border border-green-200 text-green-800 p-3 rounded-xl text-center text-xs font-semibold">
+              Order registered successfully! Opening WhatsApp...
             </div>
           )}
+
         </div>
 
-        {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-cream border-t border-cream-line px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        {/* Sticky Submit Button Footer */}
+        <div className="bg-white border-t border-cream-line p-4">
           <button
             type="submit"
-            form="orderForm"
+            form="tiffinForm"
             disabled={isSubmitting}
-            className="btn-primary w-full !py-3.5 !text-[16px] shadow-lift disabled:opacity-50"
+            className="btn-primary w-full !py-3.5 text-base font-bold shadow-lift"
           >
-            {isSubmitting ? "SAVING ORDER..." : "ORDER ON WHATSAPP"}
+            {isSubmitting ? "PROCESSING ORDER..." : "ORDER ON WHATSAPP"}
           </button>
         </div>
+
       </div>
     </div>
   );
