@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { rajrasConfig } from "../config/rajrasConfig";
 import { buildOrderMessage, buildWhatsAppUrl } from "../utils/whatsapp";
 import { saveOrderToSupabase } from "../utils/supabase";
+import { getCutoffStatus } from "../utils/cutoff";
 
 export default function OrderModal({ open, onClose, selectedDay }) {
   const [name, setName] = useState("");
@@ -131,6 +132,13 @@ export default function OrderModal({ open, onClose, selectedDay }) {
     e.preventDefault();
     if (!validate()) return;
 
+    // Cutoff validation for same day meal after 6:30 PM
+    const cutoffInfo = getCutoffStatus(selectedDay.dayCode);
+    if (cutoffInfo.isClosed) {
+      alert(`⏰ ORDER CLOSED FOR TODAY:\n\nSame-day orders for ${selectedDay.day} close at 6:30 PM.\n\nPlease pick another upcoming day from our weekly menu to order!`);
+      return;
+    }
+
     setIsSubmitting(true);
 
     let mealText = "";
@@ -208,6 +216,18 @@ export default function OrderModal({ open, onClose, selectedDay }) {
         {/* Form Body - Scrollable */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-5">
           
+          {/* Cutoff Warning Banner if order closed for same day */}
+          {getCutoffStatus(selectedDay.dayCode).isClosed && (
+            <div className="bg-amber-50 border border-amber-300 text-amber-900 p-3.5 rounded-xl text-xs font-semibold space-y-1">
+              <p className="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
+                ⏰ Same-Day Order Closed (Cutoff: 6:30 PM)
+              </p>
+              <p className="text-amber-900/90 font-medium">
+                Orders for {selectedDay.day}'s meal close at 6:30 PM. You can browse or order for upcoming days from the weekly menu!
+              </p>
+            </div>
+          )}
+
           {/* Meal Details Box */}
           <div className="bg-cream-soft border border-cream-line p-4 rounded-xl flex items-center justify-between">
             <div>

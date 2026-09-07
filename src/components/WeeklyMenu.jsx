@@ -31,6 +31,9 @@ export default function WeeklyMenu({ onOrder }) {
           <p className="mt-4 text-[16px] text-ink-soft leading-relaxed">
             Six days. Six comforting menus. One simple promise — ghar jaisa khana.
           </p>
+          <div className="mt-3 inline-flex items-center gap-2 bg-saffron/10 border border-saffron/30 text-saffron px-3.5 py-1 rounded-full text-xs font-semibold">
+            <span>⏰ Same-Day Order Cutoff: 6:30 PM daily</span>
+          </div>
         </div>
 
         {/* Day Selector Tabs (Swipeable / Scrollable on mobile) */}
