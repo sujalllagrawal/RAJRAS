@@ -256,7 +256,6 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                     return (
                       <label
                         key={opt.id}
-                        onClick={() => setSelectedFridayOption(opt.label)}
                         className={`flex items-center justify-between p-3.5 rounded-tiffin border cursor-pointer transition-all ${
                           isSelected
                             ? "border-rajras-red bg-rajras-red/5 shadow-sm"
@@ -264,14 +263,22 @@ export default function OrderModal({ open, onClose, selectedDay }) {
                         }`}
                       >
                         <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="friday_option_radio"
+                            checked={isSelected}
+                            onChange={() => setSelectedFridayOption(opt.label)}
+                            className="sr-only"
+                          />
                           <div
+                            onClick={() => setSelectedFridayOption(opt.label)}
                             className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                               isSelected ? "border-rajras-red bg-rajras-red" : "border-ink/40 bg-white"
                             }`}
                           >
                             {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-cream" />}
                           </div>
-                          <div>
+                          <div onClick={() => setSelectedFridayOption(opt.label)}>
                             <p className="font-semibold text-[14.5px] text-ink">{opt.label}</p>
                             <p className="text-[12px] text-ink-faint">{opt.detail}</p>
                           </div>
